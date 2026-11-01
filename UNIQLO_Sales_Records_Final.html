@@ -1,0 +1,1605 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNIQLO Sales Management Records — Full Dashboard</title>
+
+  <!-- Chart.js and Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+    :root{--bg:#0a1020;--panel:#121c32;--panel2:#18253e;--line:#2a3954;--text:#eff6ff;--muted:#9aaec9;--accent:#42e5ca;--secondary:#a78bfa;--pink:#f472b6;--danger:#fb7185;--shadow:0 16px 44px #0003;--gradient:linear-gradient(110deg,#42e5ca,#8bafff,#bc88ff)}
+    body.light{--bg:#f0f5fb;--panel:#fff;--panel2:#eaf2fa;--line:#d9e4f2;--text:#17233d;--muted:#526783;--accent:#087f78;--secondary:#7156cf;--pink:#c13f88;--danger:#c93753;--shadow:0 12px 34px #22335512;--gradient:linear-gradient(110deg,#087f78,#5c75d6,#8756cd)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',Arial,sans-serif;transition:background .25s,color .25s}
+    body:before{content:'';position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 6% 0%,#18baa91c,transparent 35%),radial-gradient(ellipse at 95% 10%,#9077e91b,transparent 34%)}
+    button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+    header{padding:33px max(22px,calc((100vw - 1380px)/2));background:linear-gradient(125deg,#17223f,#12162e 62%,#202146);border-bottom:1px solid #39456b;position:relative;overflow:hidden;color:white}
+    header:after{content:'';position:absolute;width:350px;height:350px;border-radius:50%;top:-250px;right:10%;background:#42e5ca28;filter:blur(14px)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.14em;font-size:12px;color:#80f2df;text-transform:uppercase;margin-bottom:20px}
+    .brand-mark{display:grid;place-items:center;border-radius:12px;width:40px;height:40px;background:linear-gradient(135deg,#25ceb8,#7e73ff);color:#071428;font-weight:800;font-size:21px;box-shadow:0 8px 22px #20bda744}
+    header h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(31px,4.3vw,55px);letter-spacing:-.05em;margin:0 0 10px;line-height:1.12;position:relative}
+    header h1 span{background:linear-gradient(95deg,#63f0d8,#b7a8ff);background-clip:text;color:transparent}
+    header p{color:#b8c6e0;margin:0;font-size:15px;line-height:1.6;position:relative}
+    .header-inner{max-width:1380px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:20px}
+    .header-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:relative}
+    .head-btn{color:#fff;border:1px solid #647293;background:#ffffff15;border-radius:12px;padding:11px 15px;font-weight:700;white-space:nowrap}.head-btn:hover{background:#ffffff29}
+    .online{display:inline-flex;gap:9px;align-items:center;color:#acf3e4;font-size:12px;font-weight:700;letter-spacing:.05em}.online:before{content:'';height:8px;width:8px;background:#42e5ca;border-radius:50%;box-shadow:0 0 0 4px #42e5ca22}
+    main{max-width:1380px;margin:0 auto;padding:30px 22px 75px}
+    .section-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.18em;font-weight:800;margin-bottom:13px}
+    .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-bottom:26px}
+    .tab{display:flex;align-items:center;justify-content:space-between;text-align:left;border:1px solid var(--line);border-radius:16px;padding:17px 19px;background:var(--panel);color:var(--muted);font-size:14px;font-weight:700;transition:transform .2s,border-color .2s,background .2s;box-shadow:var(--shadow)}
+    .tab:hover{transform:translateY(-3px);border-color:var(--accent)}.tab.active{border-color:var(--accent);color:var(--text);background:linear-gradient(120deg,var(--panel2),var(--panel));box-shadow:inset 0 -3px var(--accent),var(--shadow)}.tab .tab-index{color:var(--accent);font-size:12px}
+    .card,.summary-card{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:24px;margin-bottom:22px;box-shadow:var(--shadow)}
+    .card h2{font-family:'Space Grotesk',sans-serif;margin:0 0 11px;font-size:21px;letter-spacing:-.025em}.description{color:var(--muted);line-height:1.65;margin:8px 0 0}
+    .question-heading{position:relative;overflow:hidden;border-left:4px solid var(--accent);padding:26px 29px}.question-heading:after{content:'';position:absolute;right:-70px;top:-80px;width:200px;height:200px;border-radius:50%;background:var(--accent);opacity:.055;pointer-events:none}
+    .heading-eyebrow{text-transform:uppercase;color:var(--accent);font-weight:800;font-size:11px;letter-spacing:.18em;margin-bottom:10px}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px;margin-bottom:22px}.summary-card{margin:0;position:relative;overflow:hidden;min-height:139px}
+    .summary-card:before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}.summary-card:nth-child(2):before{background:var(--secondary)}.summary-card:nth-child(3):before{background:var(--pink)}
+    .summary-card h3{margin:0 0 17px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.09em;font-weight:800}.value{font-family:'Space Grotesk',sans-serif;font-size:clamp(22px,2.6vw,33px);font-weight:700;color:var(--text);overflow-wrap:anywhere;letter-spacing:-.04em}
+    .summary-card:nth-child(1) .value{color:var(--accent)}.summary-card:nth-child(2) .value{color:var(--secondary)}
+    .status{padding:12px 16px;margin-bottom:20px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;color:var(--muted);font-size:13px}.status.success{border-color:#1fae9155;color:var(--accent);background:#159a8020}.status.error{border-color:#fb718566;color:var(--danger);background:#f73b4b12;overflow-wrap:anywhere}
+    .chart-container{position:relative;width:100%;height:360px}.table-wrapper{overflow:auto;max-height:550px;border-radius:12px;border:1px solid var(--line)}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:14px 15px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{position:sticky;top:0;background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.06em;z-index:1}tr:hover td{background:var(--panel2)}td{font-variant-numeric:tabular-nums}.empty{text-align:center;padding:38px;color:var(--muted)}.hidden{display:none!important}
+    .toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0}.toolbar input,.toolbar select{border:1px solid var(--line);border-radius:11px;background:var(--panel2);color:var(--text);padding:11px 13px;min-height:42px}.toolbar input{flex:1;min-width:180px}.action-btn{padding:11px 15px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;color:var(--text);font-weight:700;font-size:12px;min-height:42px}.action-btn:hover{border-color:var(--accent)}.action-btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}body.light .action-btn.primary{color:white}
+    .pagination{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-top:15px;color:var(--muted);font-size:12px}.pager-buttons{display:flex;gap:7px}.pager-buttons button:disabled{opacity:.35;cursor:not-allowed}
+    .insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:-2px 0 22px}.insight{padding:19px 20px;background:var(--panel);border-radius:16px;border:1px solid var(--line)}.insight-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:10px}.insight-value{font-size:19px;font-weight:800;font-family:'Space Grotesk',sans-serif;overflow-wrap:anywhere}.insight-detail{font-size:12px;color:var(--muted);margin-top:7px}
+    .footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px;letter-spacing:.04em}
+    @media(max-width:850px){.tabs{grid-template-columns:repeat(2,1fr)}.header-inner{align-items:flex-start;flex-direction:column}.insights{grid-template-columns:1fr 1fr}}
+    @media(max-width:600px){header{padding:29px 20px}.tabs,.summary-grid,.insights{grid-template-columns:1fr}.chart-container{height:300px}.card,.summary-card{padding:19px}main{padding:22px 14px 55px}.tab{padding:13px 16px}.header-actions{width:100%}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* UNIQLO SALES MANAGEMENT RECORDS / EXECUTIVE DASHBOARD */
+:root{--bg:#04070d;--panel:#0a1220;--panel2:#0f1929;--line:#1b2737;--text:#f7f9fd;--muted:#879ab3;--accent:#e7ff72;--secondary:#72b8ff;--pink:#ff9a72;--danger:#ff6d89;--shadow:0 22px 60px #00000070;--gradient:linear-gradient(110deg,#e7ff72,#83efc8)}
+body.light{--bg:#f3f4ee;--panel:#ffffff;--panel2:#f1f3ed;--line:#dfe3d8;--text:#19242b;--muted:#617178;--accent:#527200;--secondary:#2869a6;--pink:#a75128;--danger:#b93455;--shadow:0 14px 35px #263f2411;--gradient:linear-gradient(110deg,#527200,#247b67)}
+body{font-family:'DM Sans',sans-serif;background:var(--bg)}body:before{background:radial-gradient(ellipse at 100% 0%,#b9ff750d,transparent 28%),radial-gradient(ellipse at 30% 80%,#529cfc08,transparent 42%),radial-gradient(ellipse at 10% 10%,#7b61ff08,transparent 30%)}
+header{background:linear-gradient(180deg,#060a12,#09111d);border-bottom:1px solid #1f2c3c;padding:24px max(24px,calc((100vw - 1460px)/2));}header:after{background:#d5ff7014;right:-60px;top:-220px}.header-inner{max-width:1460px}.brand{color:#e5ff7a;letter-spacing:.19em;margin-bottom:12px}.brand-mark{background:#e5ff7a;color:#101a20;border-radius:9px;box-shadow:0 0 28px #dfff6d22}header h1{font-size:clamp(30px,3.4vw,48px)}header h1 span{background:linear-gradient(90deg,#e5ff7a,#a1dfff);background-clip:text}.online{color:#d5ff7a}.online:before{background:#e5ff7a;box-shadow:0 0 0 4px #e5ff7a18}.head-btn{border-color:#334255;background:#ffffff08}.head-btn:hover{border-color:#d5ff7a;color:#e5ff7a}
+main{max-width:1460px;padding:32px 24px 85px}.workspace-bar{display:flex;justify-content:space-between;align-items:center;gap:20px;margin:0 0 28px;padding:27px 30px;background:linear-gradient(112deg,#0d1725,#0a111d 68%,#111b18);border:1px solid #243346;border-radius:20px;color:#fff;position:relative;overflow:hidden}.workspace-bar:after{content:'U';position:absolute;right:18%;top:-75px;font-family:'Space Grotesk';font-size:240px;font-weight:700;color:#e5ff7a08;pointer-events:none}.workspace-kicker{color:#d8ff82;font-size:11px;font-weight:800;letter-spacing:.2em}.workspace-bar h2{font-family:'Space Grotesk';font-size:clamp(23px,2.7vw,35px);letter-spacing:-.04em;margin:8px 0}.workspace-bar p{color:#9cb0c6;margin:0;font-size:13px}.workspace-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;z-index:1}.live-pill{display:flex;align-items:center;gap:8px;border:1px solid #405140;border-radius:30px;padding:10px 13px;font-size:10px;letter-spacing:.1em;font-weight:800;color:#e5ff7a;white-space:nowrap;background:#0b1412}.live-pill span{width:7px;height:7px;background:#e5ff7a;border-radius:50%;box-shadow:0 0 12px #e5ff7a}.section-label{display:flex;justify-content:space-between;color:var(--muted);letter-spacing:.16em}.module-count{color:var(--accent);letter-spacing:.08em}
+.tabs{gap:12px}.tab{min-height:87px;border-radius:15px;align-items:flex-start;padding:20px;background:var(--panel);color:var(--text);font-family:'Space Grotesk';font-size:15px;letter-spacing:-.02em;box-shadow:none}.tab-index{font-family:'DM Sans';font-size:11px;border:1px solid var(--line);border-radius:7px;padding:5px 7px}.tab.active{background:var(--accent);color:#111d1d;border-color:var(--accent);box-shadow:0 12px 32px #a4f76019}.tab.active .tab-index{color:#111d1d;border-color:#111d1d44}.tab:hover{transform:translateY(-2px)}
+.card,.summary-card,.insight{border-radius:16px;box-shadow:none}.question-heading{border-left:0;border-top:3px solid var(--accent);background:linear-gradient(115deg,var(--panel),var(--panel2))}.heading-eyebrow{color:var(--accent)}.summary-card{min-height:160px;padding:26px}.summary-card:before{width:auto;height:3px;right:0;bottom:auto}.summary-card:nth-child(2):before{background:var(--secondary)}.summary-card:nth-child(3):before{background:var(--pink)}.summary-card:nth-child(1) .value{color:var(--accent)}.summary-card:nth-child(2) .value{color:var(--secondary)}.summary-card h3{letter-spacing:.13em}.value{font-size:clamp(26px,3vw,39px)}.insight{background:linear-gradient(140deg,var(--panel),var(--panel2))}.insight-value{color:var(--text);font-size:22px}.action-btn.primary{color:#101b20}body.light .action-btn.primary{color:#fff}.status.success{color:var(--accent);background:var(--panel2);border-color:var(--line)}.footer{padding:25px;border-top:1px solid var(--line)}
+@media(max-width:800px){.workspace-bar{flex-direction:column;align-items:flex-start}.workspace-actions{width:100%}}@media(max-width:600px){main{padding:18px 13px 50px}.workspace-bar{padding:20px}.tab{min-height:62px}.workspace-bar h2{font-size:25px}}
+@media print{header .header-actions,.tabs,.workspace-actions,.toolbar,.pagination{display:none!important}body{background:white!important;color:black!important}.card,.summary-card,.insight{break-inside:avoid;box-shadow:none!important}section.hidden{display:none!important}}
+
+  
+.analytics-tools{border:1px solid var(--line, #26344b)}
+.analytics-title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.analytics-title strong{font-size:19px}.analytics-title span{opacity:.65;font-size:13px}
+.analytics-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px}
+.analytics-controls label{display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:700;opacity:.95}
+.analytics-controls select,.analytics-controls input{background:var(--panel,#0f1724);color:inherit;border:1px solid #42506688;border-radius:10px;padding:10px;min-height:40px;max-width:190px}
+.analytics-summary{margin-top:17px;display:flex;gap:10px;flex-wrap:wrap}
+.analytics-summary span{border:1px solid #65748a44;border-radius:12px;padding:10px 14px;font-size:13px}
+.analytics-summary b{color:var(--accent,#c7f26b)}
+@media(max-width:650px){.analytics-controls label{width:calc(50% - 8px)}.analytics-controls input,.analytics-controls select{width:100%}}
+
+/* Executive overview */
+.tabs{grid-template-columns:repeat(5,minmax(0,1fr))}
+.tab.overview-tab{border-color:#5b6c2f;background:linear-gradient(130deg,#172117,#0c1523);color:#f1ffcf}
+.tab.overview-tab.active{background:linear-gradient(130deg,#233018,#101d31)}
+.overview-hero{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;border:1px solid #859f3755;background:linear-gradient(115deg,#101a1b,#0d1323 70%,#121b14);border-radius:21px;padding:29px 32px;margin:0 0 21px;box-shadow:var(--shadow);color:#f5f7fb}
+.overview-hero h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(25px,3vw,38px);margin:8px 0 9px;letter-spacing:-.04em}
+.overview-hero p{margin:0;color:#b7c5d2;line-height:1.5;max-width:750px}
+.overview-eyebrow{font-size:11px;letter-spacing:.17em;font-weight:800;color:#d9ff83;text-transform:uppercase}
+.overview-hero .action-btn{background:#e5ff7a;color:#0d151d;border-color:#e5ff7a;box-shadow:0 8px 24px #d5ff7020}
+.overview-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.overview-kpi{border:1px solid var(--line);background:var(--panel);padding:22px;border-radius:17px;position:relative;overflow:hidden;min-width:0;box-shadow:var(--shadow)}
+.overview-kpi:after{content:'';position:absolute;inset:auto 0 0;height:3px;background:var(--accent)}
+.overview-kpi:nth-child(2):after{background:var(--secondary)}.overview-kpi:nth-child(3):after{background:var(--pink)}.overview-kpi:nth-child(4):after{background:#ab99ff}
+.overview-kpi .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800}
+.overview-kpi .kpi-number{font-family:'Space Grotesk',sans-serif;font-size:clamp(23px,2.5vw,34px);letter-spacing:-.04em;font-weight:800;margin:16px 0 5px;overflow-wrap:anywhere}
+.overview-kpi .kpi-detail{color:var(--muted);font-size:12px;line-height:1.5}
+.overview-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:13px;margin:0 0 19px}
+.overview-toolbar label{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:12px;font-weight:700}
+.overview-toolbar select,.overview-toolbar input{color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;min-height:40px;padding:9px 12px;max-width:190px}
+.overview-visual-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:19px}
+.overview-visual-grid .card{min-width:0}
+.overview-visual-grid .overview-wide{grid-column:1/-1}
+.overview-chart{height:300px;position:relative}
+.overview-wide .overview-chart{height:310px}
+.overview-chart-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 13px}
+.overview-chart-head h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em;font-size:18px;margin:0}
+.overview-chart-head span{font-size:12px;color:var(--muted)}
+.overview-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin:0 0 20px}
+.overview-insights .insight{margin:0;min-height:134px}
+.overview-table td button{background:transparent;border:1px solid var(--line);padding:8px 11px;border-radius:8px;color:var(--accent);font-weight:700}
+.overview-table td button:hover{border-color:var(--accent)}
+.overview-table .sub{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.overview-footnote{color:var(--muted);font-size:12px;line-height:1.7;margin:12px 0 0}
+.overview-alert{padding:12px 15px;border-radius:11px;background:#9d631014;border:1px solid #b67e2850;color:var(--text);margin:0 0 17px;font-size:13px}
+.overview-loading{color:var(--muted);border:1px dashed var(--line);border-radius:14px;padding:35px;text-align:center;margin-bottom:20px;background:#09101a}
+@media(max-width:1100px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.overview-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:750px){.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-visual-grid,.overview-insights{grid-template-columns:1fr}.overview-visual-grid .overview-wide{grid-column:auto}}
+@media(max-width:480px){.tabs{grid-template-columns:1fr}.overview-kpis{grid-template-columns:1fr}.overview-hero{padding:22px}.overview-toolbar label,.overview-toolbar input,.overview-toolbar select{width:100%;max-width:none}}
+@media print{.overview-toolbar,.overview-hero button,.overview-table button{display:none!important}}
+
+/* Dark full-sales landing workspace */
+.full-dash-title{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:12px 2px 22px}
+.full-dash-title h2{font-family:'Space Grotesk',sans-serif;font-size:clamp(29px,3.2vw,42px);letter-spacing:-.045em;margin:8px 0 6px}
+.full-dash-title p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.full-dash-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.full-filters{display:flex;gap:13px;align-items:end;flex-wrap:wrap}
+.full-filters label,.mini-select{display:flex;flex-direction:column;gap:7px;color:var(--muted);font-size:12px;font-weight:700}
+.full-filters .search-field{flex:2;min-width:240px}
+.full-filters input,.full-filters select,.mini-select select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:11px 12px;min-height:42px;min-width:135px;max-width:270px}
+.full-filters .search-field input{width:100%;max-width:none}
+.full-filters button{min-height:42px}
+.full-filter-panel{padding:20px 23px 23px}
+.full-records-card{margin-top:4px}
+.full-record-table{max-height:620px}
+.full-record-table td{font-size:12px;white-space:nowrap}
+.full-record-table th{background:var(--panel2);color:var(--muted);z-index:2}
+.full-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;color:var(--muted);font-size:12px}
+.full-pagination .pager-buttons{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.full-pagination button:disabled{cursor:not-allowed;opacity:.3}
+.full-donut-chart{height:290px;max-width:640px;margin:0 auto}
+.overview-insights .insight{background:var(--panel2)}
+#overviewStatus{margin-top:0}
+@media(max-width:800px){.full-filters label{flex:1;min-width:140px}.full-filters .search-field{flex-basis:100%}.full-dash-actions{width:100%}}
+@media(max-width:540px){.full-filters label,.full-filters select,.full-filters input{width:100%;max-width:none}.full-filters label{flex-basis:100%}}
+@media print{.full-filters,.full-pagination,.full-dash-actions,.mini-select{display:none!important}}
+.overview-kpis{grid-template-columns:repeat(5,minmax(0,1fr))}
+.date-quality-card:after{background:#f2c66d!important}
+.status.warning{background:#3b290b;border-color:#876729;color:#ffe0a1}
+body.light .status.warning{background:#fff2d7;border-color:#e7ca86;color:#79500a}
+@media(max-width:1200px){.overview-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:750px){.overview-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.overview-kpis{grid-template-columns:1fr}}
+
+#refreshData{user-select:none;white-space:nowrap;touch-action:manipulation}
+#refreshData:not(:disabled):active{transform:translateY(1px)}
+.refresh-notice{overflow-wrap:anywhere}
+.refresh-notice{margin:-2px 0 20px;border:1px solid #2c4f42;background:#0b221d;color:#c9fae6;border-radius:12px;padding:13px 16px;font-size:13px;line-height:1.55}
+.refresh-notice.warning{border-color:#776038;background:#261e13;color:#ffe2a0}
+.refresh-notice.error{border-color:#80404e;background:#2a1119;color:#ffc5ce}
+body.light .refresh-notice{background:#e7f8ef;color:#145c44}
+body.light .refresh-notice.warning{background:#fff4da;color:#80530a}
+body.light .refresh-notice.error{background:#ffebee;color:#9b2e42}
+#refreshData:disabled,#overviewRefresh:disabled{opacity:.6;cursor:wait}
+</style>
+</head>
+
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="brand"><span class="brand-mark">U</span> UNIQLO / SALES MANAGEMENT</div>
+        <h1>UNIQLO <span>Sales Management Records</span></h1>
+        <p>Sales records, visual analytics, and retail performance insights</p>
+      </div>
+      <div class="header-actions">
+        <span class="online">SUPABASE DATA CONNECTION</span>
+        <button id="printReport" class="head-btn" type="button">▤ Print report</button>
+        <button id="themeToggle" class="head-btn" type="button">☀ Light mode</button>
+        <button id="refreshData" class="head-btn" type="button" title="Reload all Supabase sales and four reports">↻ Refresh data</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="section-label">SALES ANALYTICS <span class="module-count">05 VIEWS</span></div>
+    <nav class="tabs" aria-label="Dashboard sections">
+      <button class="tab overview-tab active" id="tabOverview" type="button" aria-controls="overview" aria-selected="true">◫ &nbsp; All Sales Dashboard <span class="tab-index">00</span></button>
+      <button class="tab" id="tab1" type="button">
+        ◈ &nbsp; Premium Pricing <span class="tab-index">01</span>
+      </button>
+      <button class="tab" id="tab2" type="button">
+        ◎ &nbsp; Customer Behavior <span class="tab-index">02</span>
+      </button>
+      <button class="tab" id="tab3" type="button">
+        ▥ &nbsp; Store Performance <span class="tab-index">03</span>
+      </button>
+      <button class="tab" id="tab4" type="button">
+        ✦ &nbsp; Promo Analytics <span class="tab-index">04</span>
+      </button>
+    </nav>
+    <div id="refreshNotice" class="refresh-notice hidden" role="status" aria-live="polite"></div>
+
+    <!-- ALL SALES DASHBOARD: FULL FACT_SALES DATASET -->
+    <section id="overview" aria-labelledby="overviewHeading">
+      <div class="full-dash-title">
+        <div><span class="overview-eyebrow">UNIQLO / SALES DATABASE</span><h2 id="overviewHeading">All Sales Records</h2>
+          <p>Complete transaction overview from Supabase — every accessible record, not only the four analysis filters.</p>
+        </div>
+        <div class="full-dash-actions"><button id="overviewRefresh" class="action-btn" type="button">↻ Reload records</button>
+          <button id="overviewExport" class="action-btn primary" type="button" disabled>↓ Export filtered CSV</button></div>
+      </div>
+      <div id="overviewStatus" class="status" role="status" aria-live="polite">Connecting to Supabase…</div>
+      <div id="overviewAlert" class="overview-alert hidden" role="alert"></div>
+      <div class="overview-kpis">
+        <article class="overview-kpi"><div class="kpi-label">Sales records</div><div id="ovCount" class="kpi-number">—</div><div id="ovCountDetail" class="kpi-detail">All retrieved records</div></article>
+        <article class="overview-kpi"><div class="kpi-label">Total net sales</div><div id="ovRevenue" class="kpi-number">—</div><div class="kpi-detail">Filtered transactions</div></article>
+        <article class="overview-kpi"><div class="kpi-label">Units sold</div><div id="ovUnits" class="kpi-number">—</div><div class="kpi-detail">Total quantity sold</div></article>
+        <article class="overview-kpi"><div class="kpi-label">Average transaction</div><div id="ovAov" class="kpi-number">—</div><div class="kpi-detail">Net sales / transactions</div></article>
+        <article class="overview-kpi date-quality-card"><div class="kpi-label">Distinct sale dates</div><div id="ovUniqueDates" class="kpi-number">—</div><div id="ovDateSpan" class="kpi-detail">Date key integrity check</div></article>
+      </div>
+      <div class="card full-filter-panel">
+        <div class="overview-chart-head"><h3>Explore transactions</h3><span>Search, filter, and inspect all available sales</span></div>
+        <div class="full-filters">
+          <label class="search-field">Search records<input id="overviewSearch" type="search" placeholder="Sale ID, SKU, customer, store, promotion…" autocomplete="off"></label>
+          <label>Product<select id="overviewProduct"><option value="">All products</option></select></label>
+          <label>Start date<input id="overviewFrom" type="date"></label>
+          <label>End date<input id="overviewTo" type="date"></label>
+          <label>Sort by<select id="overviewSort"><option value="id-desc">Sale ID · newest first</option><option value="date-desc">Date · newest first</option><option value="date-asc">Date · oldest first</option><option value="revenue-desc">Highest net sales</option><option value="quantity-desc">Highest quantity</option></select></label>
+          <button id="overviewClear" class="action-btn" type="button">Clear filters</button>
+        </div>
+      </div>
+      <div id="overviewContents" class="hidden">
+        <div class="overview-visual-grid">
+          <div class="card"><div class="overview-chart-head"><h3>Sales Revenue Trend</h3><label class="mini-select">Group by <select id="overviewGroup"><option value="month">Month</option><option value="week">Week</option><option value="day">Day</option></select></label></div><div class="overview-chart"><canvas id="overviewTrend"></canvas></div></div>
+          <div class="card"><div class="overview-chart-head"><h3>Top Selling Products</h3><span>Ranked by net sales</span></div><div class="overview-chart"><canvas id="overviewBars"></canvas></div></div>
+          <div class="card overview-wide"><div class="overview-chart-head"><h3>Product Revenue Distribution</h3><span>Revenue share of top products</span></div><div class="overview-chart full-donut-chart"><canvas id="overviewMixed"></canvas></div></div>
+        </div>
+        <div class="section-label">QUICK INSIGHTS</div>
+        <div class="overview-insights" id="overviewInsights"></div>
+        <div class="card full-records-card">
+          <div class="overview-chart-head"><div><h3>Complete Sales Records</h3><p id="overviewRecordCount" class="description">All transactions</p></div><label class="mini-select">Rows per page<select id="overviewPageSize"><option value="25">25</option><option value="50" selected>50</option><option value="100">100</option><option value="250">250</option></select></label></div>
+          <div class="table-wrapper full-record-table"><table><thead><tr><th>Sale ID</th><th>Sale Date</th><th>Date Key</th><th>Product SKU</th><th>Product Name</th><th>Customer</th><th>Employee</th><th>Store</th><th>Promotion</th><th>Quantity</th><th>Gross Unit Price</th><th>Net Sales</th></tr></thead><tbody id="overviewRows"></tbody></table></div>
+          <div class="full-pagination"><span id="overviewPageInfo">—</span><div class="pager-buttons"><button id="overviewFirst" class="action-btn" type="button">« First</button><button id="overviewPrev" class="action-btn" type="button">‹ Previous</button><span id="overviewPageLabel">Page 1</span><button id="overviewNext" class="action-btn" type="button">Next ›</button><button id="overviewLast" class="action-btn" type="button">Last »</button></div></div>
+          <p class="overview-footnote">Dates are read directly from <code>fact_sales.date_key</code> and <code>dim_date.full_date</code>. The companion SQL repair distributes simulated dates from <strong>January 1, 2024 through September 26, 2026</strong> (inclusive). These are <strong>simulated dates</strong>, not recovered historical sale dates. Search, KPIs, charts, and exports reflect the current database values.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUESTION 1 -->
+    <section id="question1" class="hidden">
+      <div class="card question-heading">
+        <div class="heading-eyebrow">Focused analysis</div>
+        <h2>Question 1: High-Price Sales</h2>
+        <p class="description">
+          Sales with gross unit price greater than ₱1,000
+          for product <strong>UQ-HT-02</strong>.
+        </p>
+      </div>
+
+      <div id="status1" class="status" role="status"
+           aria-live="polite">Loading...</div>
+
+      <div id="summary1" class="summary-grid hidden">
+        <div class="summary-card">
+          <h3>Matching Records</h3>
+          <div id="count1" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Net Sales</h3>
+          <div id="total1" class="value">₱0.00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Average Gross Unit Price</h3>
+          <div id="third1" class="value">₱0.00</div>
+        </div>
+      </div>
+
+      <div id="charts1" class="hidden">
+      <div class="card analytics-tools">
+        <div class="analytics-title"><strong>Visualization Studio</strong><span>Explore and compare your sales data</span></div>
+        <div class="analytics-controls">
+          <label>Chart view <select id="view1"><option value="trend">Sales trend</option><option value="quantity">Quantity analysis</option><option value="price">Unit price analysis</option><option value="mix">Sales vs quantity</option><option value="cumulative">Cumulative sales</option></select></label>
+          <label>Group by <select id="group1"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="sale">Individual sale</option></select></label>
+          <label>From <input type="date" id="from1"></label>
+          <label>To <input type="date" id="to1"></label>
+          <button class="action-btn" id="reset1">Reset filters</button>
+          <button class="action-btn primary" id="png1">↓ Save graph</button>
+        </div>
+        <div id="analyticsSummary1" class="analytics-summary"></div>
+      </div>
+        <div class="card">
+          <h2>Gross Unit Price per Sale</h2>
+          <p class="description">
+            Red dashed line: ₱1,000 threshold.
+          </p>
+          <div class="chart-container">
+            <canvas id="chart1"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableSection1" class="card hidden">
+        <h2>Matching Records</h2>
+        <p id="tableCount1" class="description"></p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Date</th>
+                <th>SKU</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Gross Unit Price</th>
+                <th>Net Sales</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody1"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="empty1" class="card empty hidden">
+        No matching records found for Question 1.
+      </div>
+    </section>
+
+    <!-- QUESTION 2 -->
+    <section id="question2" class="hidden">
+      <div class="card question-heading">
+        <div class="heading-eyebrow">Focused analysis</div>
+        <h2>Question 2: Customer Product Sales</h2>
+        <p class="description">
+          Customer <strong>Benjamin Aquino</strong>
+          purchasing product <strong>UQ-AIR-01</strong>.
+        </p>
+      </div>
+
+      <div id="status2" class="status" role="status"
+           aria-live="polite">Loading...</div>
+
+      <div id="summary2" class="summary-grid hidden">
+        <div class="summary-card">
+          <h3>Matching Records</h3>
+          <div id="count2" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Net Sales</h3>
+          <div id="total2" class="value">₱0.00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Quantity Sold</h3>
+          <div id="third2" class="value">0</div>
+        </div>
+      </div>
+
+      <div id="charts2" class="hidden">
+      <div class="card analytics-tools">
+        <div class="analytics-title"><strong>Visualization Studio</strong><span>Explore and compare your sales data</span></div>
+        <div class="analytics-controls">
+          <label>Chart view <select id="view2"><option value="trend">Sales trend</option><option value="quantity">Quantity analysis</option><option value="price">Unit price analysis</option><option value="mix">Sales vs quantity</option><option value="cumulative">Cumulative sales</option></select></label>
+          <label>Group by <select id="group2"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="sale">Individual sale</option></select></label>
+          <label>From <input type="date" id="from2"></label>
+          <label>To <input type="date" id="to2"></label>
+          <button class="action-btn" id="reset2">Reset filters</button>
+          <button class="action-btn primary" id="png2">↓ Save graph</button>
+        </div>
+        <div id="analyticsSummary2" class="analytics-summary"></div>
+      </div>
+        <div class="card">
+          <h2>Daily Net Sales Trend</h2>
+          <div class="chart-container">
+            <canvas id="chart2a"></canvas>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Quantity Sold per Sale</h2>
+          <div class="chart-container">
+            <canvas id="chart2b"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableSection2" class="card hidden">
+        <h2>Matching Records</h2>
+        <p id="tableCount2" class="description"></p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>SKU</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Gross Unit Price</th>
+                <th>Net Sales</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody2"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="empty2" class="card empty hidden">
+        No matching records found for Question 2.
+      </div>
+    </section>
+
+    <!-- QUESTION 3 -->
+    <section id="question3" class="hidden">
+      <div class="card question-heading">
+        <div class="heading-eyebrow">Focused analysis</div>
+        <h2>Question 3: Employee and Store Sales</h2>
+        <p class="description">
+          Employee <strong>EMP-003</strong>
+          at store <strong>STORE-003</strong>.
+        </p>
+      </div>
+
+      <div id="status3" class="status" role="status"
+           aria-live="polite">Loading...</div>
+
+      <div id="summary3" class="summary-grid hidden">
+        <div class="summary-card">
+          <h3>Matching Records</h3>
+          <div id="count3" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Net Sales</h3>
+          <div id="total3" class="value">₱0.00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Quantity Sold</h3>
+          <div id="third3" class="value">0</div>
+        </div>
+      </div>
+
+      <div id="charts3" class="hidden">
+      <div class="card analytics-tools">
+        <div class="analytics-title"><strong>Visualization Studio</strong><span>Explore and compare your sales data</span></div>
+        <div class="analytics-controls">
+          <label>Chart view <select id="view3"><option value="trend">Sales trend</option><option value="quantity">Quantity analysis</option><option value="price">Unit price analysis</option><option value="mix">Sales vs quantity</option><option value="cumulative">Cumulative sales</option></select></label>
+          <label>Group by <select id="group3"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="sale">Individual sale</option></select></label>
+          <label>From <input type="date" id="from3"></label>
+          <label>To <input type="date" id="to3"></label>
+          <button class="action-btn" id="reset3">Reset filters</button>
+          <button class="action-btn primary" id="png3">↓ Save graph</button>
+        </div>
+        <div id="analyticsSummary3" class="analytics-summary"></div>
+      </div>
+        <div class="card">
+          <h2>Daily Net Sales</h2>
+          <div class="chart-container">
+            <canvas id="chart3"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableSection3" class="card hidden">
+        <h2>Matching Records</h2>
+        <p id="tableCount3" class="description"></p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Date</th>
+                <th>Employee ID</th>
+                <th>Store Code</th>
+                <th>Quantity</th>
+                <th>Gross Unit Price</th>
+                <th>Net Sales</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody3"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="empty3" class="card empty hidden">
+        No matching records found for Question 3.
+      </div>
+    </section>
+
+    <!-- QUESTION 4 -->
+    <section id="question4" class="hidden">
+      <div class="card question-heading">
+        <div class="heading-eyebrow">Focused analysis</div>
+        <h2>Question 4: March 2024 Promotional Sales</h2>
+        <p class="description">
+          Sales in <strong>March 2024</strong>
+          for product <strong>UQ-BAG-01</strong>
+          with promotion <strong>PROMO-LIMITED</strong>.
+        </p>
+      </div>
+
+      <div id="status4" class="status" role="status"
+           aria-live="polite">Loading...</div>
+
+      <div id="summary4" class="summary-grid hidden">
+        <div class="summary-card">
+          <h3>Matching Records</h3>
+          <div id="count4" class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Net Sales</h3>
+          <div id="total4" class="value">₱0.00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total Quantity Sold</h3>
+          <div id="third4" class="value">0</div>
+        </div>
+      </div>
+
+      <div id="charts4" class="hidden">
+      <div class="card analytics-tools">
+        <div class="analytics-title"><strong>Visualization Studio</strong><span>Explore and compare your sales data</span></div>
+        <div class="analytics-controls">
+          <label>Chart view <select id="view4"><option value="trend">Sales trend</option><option value="quantity">Quantity analysis</option><option value="price">Unit price analysis</option><option value="mix">Sales vs quantity</option><option value="cumulative">Cumulative sales</option></select></label>
+          <label>Group by <select id="group4"><option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="sale">Individual sale</option></select></label>
+          <label>From <input type="date" id="from4"></label>
+          <label>To <input type="date" id="to4"></label>
+          <button class="action-btn" id="reset4">Reset filters</button>
+          <button class="action-btn primary" id="png4">↓ Save graph</button>
+        </div>
+        <div id="analyticsSummary4" class="analytics-summary"></div>
+      </div>
+        <div class="card">
+          <h2>Daily Promotional Net Sales — March 2024</h2>
+          <p class="description">
+            Daily net sales for UQ-BAG-01 under PROMO-LIMITED.
+          </p>
+          <div class="chart-container">
+            <canvas id="chart4"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableSection4" class="card hidden">
+        <h2>Matching Promotional Sales Records</h2>
+        <p id="tableCount4" class="description"></p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>Date</th>
+                <th>SKU</th>
+                <th>Promotion</th>
+                <th>Quantity</th>
+                <th>Gross Unit Price</th>
+                <th>Net Sales</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody4"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="empty4" class="card empty hidden">
+        No matching promotional sales found for March 2024.
+      </div>
+    </section>
+    <div class="footer">SIGNAL INTELLIGENCE • Sales are loaded from your connected Supabase project</div>
+  </main>
+
+  <script>
+    // ==========================================
+    // SUPABASE CONFIGURATION
+    // Publishable key only.
+    // Do not commit this file publicly.
+    // NEVER use service_role or a secret key here.
+    // ==========================================
+
+    const SUPABASE_URL =
+      "https://chforetvcqdihokzimru.supabase.co";
+
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_xrDiMalK1locZfsqk1rqrg_flgGVy9b";
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        db: { schema: "public" },
+        // Read current Supabase data after SQL Editor changes, not browser-cached GET responses.
+        global: {
+          fetch: (input, init = {}) => fetch(input, { ...init, cache: 'no-store' })
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      }
+    );
+
+    // ==========================================
+    // SETTINGS
+    // ==========================================
+
+    const PAGE_SIZE = 1000;
+    const PRICE_THRESHOLD = 1000;
+
+    const loaded = {
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    };
+
+    const loading = {
+      1: false,
+      2: false,
+      3: false,
+      4: false
+    };
+
+    const charts = {};
+
+    // ==========================================
+    // COMMON HELPERS
+    // ==========================================
+
+    function money(value) {
+      return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP"
+      }).format(Number(value) || 0);
+    }
+
+    function number(value) {
+      return new Intl.NumberFormat("en-PH")
+        .format(value);
+    }
+
+    function totalOf(rows, field) {
+      return rows.reduce(
+        (sum, row) => sum + Number(row[field] || 0),
+        0
+      );
+    }
+
+    function show(id) {
+      document.getElementById(id)
+        .classList.remove("hidden");
+    }
+
+    function hide(id) {
+      document.getElementById(id)
+        .classList.add("hidden");
+    }
+
+    function setStatus(question, message, type = "") {
+      const el = document.getElementById(
+        "status" + question
+      );
+
+      el.textContent = message;
+      el.className = "status " + type;
+    }
+
+    function makeChart(key, canvasId, config) {
+      if (charts[key]) {
+        charts[key].destroy();
+      }
+
+      charts[key] = new Chart(
+        document.getElementById(canvasId),
+        config
+      );
+    }
+
+    // ==========================================
+    // DATABASE QUERIES
+    // All filters run in Supabase.
+    // ==========================================
+
+    function buildQuery(question) {
+      if (question === 1) {
+        return supabaseClient
+          .from("fact_sales")
+          .select(`
+            sales_fact_id,
+            quantity_sold,
+            gross_unit_price,
+            net_sales_collected,
+            dim_product!inner (
+              sku_code,
+              product_name
+            ),
+            dim_date (full_date)
+          `)
+          .gt("gross_unit_price", 1000)
+          .eq("dim_product.sku_code", "UQ-HT-02");
+      }
+
+      if (question === 2) {
+        return supabaseClient
+          .from("fact_sales")
+          .select(`
+            sales_fact_id,
+            quantity_sold,
+            gross_unit_price,
+            net_sales_collected,
+            dim_customer!inner (full_name),
+            dim_product!inner (
+              sku_code,
+              product_name
+            ),
+            dim_date (full_date)
+          `)
+          .eq(
+            "dim_customer.full_name",
+            "Benjamin Aquino"
+          )
+          .eq("dim_product.sku_code", "UQ-AIR-01");
+      }
+
+      if (question === 3) {
+        return supabaseClient
+          .from("fact_sales")
+          .select(`
+            sales_fact_id,
+            quantity_sold,
+            gross_unit_price,
+            net_sales_collected,
+            dim_employee!inner (employee_id),
+            dim_store!inner (store_code),
+            dim_date (full_date)
+          `)
+          .eq("dim_employee.employee_id", "EMP-003")
+          .eq("dim_store.store_code", "STORE-003");
+      }
+
+      
+if (question === 4) {
+  return supabaseClient
+    .from("fact_sales")
+    .select(`
+      sales_fact_id,
+      quantity_sold,
+      gross_unit_price,
+      net_sales_collected,
+      dim_date!inner (
+        full_date,
+        year_number,
+        month_name
+      ),
+      dim_product!inner (sku_code),
+      dim_promotion!inner (promo_code)
+    `)
+    .gte("dim_date.full_date", "2024-03-01")
+    .lt("dim_date.full_date", "2024-04-01")
+    .eq("dim_product.sku_code", "UQ-BAG-01")
+    .eq("dim_promotion.promo_code", "PROMO-LIMITED");
+}
+
+
+      throw new Error("Unknown question: " + question);
+    }
+
+    // ==========================================
+    // FETCH ALL MATCHING RECORDS
+    // ==========================================
+
+    async function fetchAll(question) {
+      const allRows = [];
+      let start = 0;
+
+      while (true) {
+        const { data, error } = await buildQuery(question)
+          .order("sales_fact_id", { ascending: true })
+          .range(start, start + PAGE_SIZE - 1);
+
+        if (error) throw error;
+
+        const rows = data || [];
+        allRows.push(...rows);
+
+        if (rows.length < PAGE_SIZE) break;
+
+        start += PAGE_SIZE;
+
+        setStatus(
+          question,
+          "Loading... " + number(allRows.length) +
+          " records retrieved."
+        );
+      }
+
+      return allRows;
+    }
+
+    // ==========================================
+    // SUMMARY CARDS
+    // ==========================================
+
+    function updateSummary(question, rows) {
+      document.getElementById("count" + question)
+        .textContent = number(rows.length);
+
+      document.getElementById("total" + question)
+        .textContent = money(
+          totalOf(rows, "net_sales_collected")
+        );
+
+      if (question === 1) {
+        const average = rows.length
+          ? totalOf(rows, "gross_unit_price") / rows.length
+          : 0;
+
+        document.getElementById("third1")
+          .textContent = money(average);
+      } else {
+        document.getElementById("third" + question)
+          .textContent = number(
+            totalOf(rows, "quantity_sold")
+          );
+      }
+
+      show("summary" + question);
+    }
+
+    // ==========================================
+    // DAILY SALES AGGREGATION FOR CHARTS
+    // ==========================================
+
+    function dailySales(rows) {
+      const totals = new Map();
+
+      rows.forEach(row => {
+        const date = row.dim_date?.full_date;
+        if (!date) return;
+
+        totals.set(
+          date,
+          (totals.get(date) || 0) +
+          Number(row.net_sales_collected || 0)
+        );
+      });
+
+      const labels = [...totals.keys()].sort();
+
+      return {
+        labels,
+        values: labels.map(date => totals.get(date))
+      };
+    }
+
+    function chartOptions(yLabel, currency = true) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const value = ctx.parsed.y;
+                return currency
+                  ? "Net Sales: " + money(value)
+                  : "Quantity: " + number(value);
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Date / Sale"
+            },
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 15,
+              maxRotation: 45
+            }
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: yLabel
+            },
+            ticks: {
+              callback: value =>
+                currency ? money(value) : number(value)
+            }
+          }
+        }
+      };
+    }
+
+    // ==========================================
+    // QUESTION 1 REFERENCE LINE
+    // ==========================================
+
+    const thresholdPlugin = {
+      id: "thresholdLine",
+      afterDatasetsDraw(chart) {
+        const { ctx, chartArea, scales } = chart;
+        if (!chartArea || !scales.y) return;
+
+        const y = scales.y.getPixelForValue(
+          PRICE_THRESHOLD
+        );
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([8, 5]);
+        ctx.strokeStyle = "#fb7185";
+        ctx.lineWidth = 2;
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#fb7185";
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(
+          "₱1,000 threshold",
+          chartArea.right - 5,
+          y - 8
+        );
+        ctx.restore();
+      }
+    };
+
+    // ==========================================
+    // RENDER CHARTS
+    // ==========================================
+
+
+    // ANALYTICS STUDIO: dynamically regroup and compare metrics
+    const analysisFilters = {};
+    const originalRows = {};
+    function chartRows(q) {
+      const f=analysisFilters[q] || {};
+      return (originalRows[q]||[]).filter(r=>{
+        const d=r.dim_date?.full_date || "";
+        return (!f.from || d>=f.from) && (!f.to || d<=f.to);
+      });
+    }
+    function renderCharts(question, ignoredRows) {
+      const rows=chartRows(question);
+      const mode=document.getElementById("view"+question)?.value||"trend";
+      const grouping=document.getElementById("group"+question)?.value||"day";
+      const buckets=new Map();
+      for(const r of rows){
+        const date=r.dim_date?.full_date||"Unknown";
+        const key=grouping==="sale"?"#"+r.sales_fact_id:grouping==="month"?date.slice(0,7):grouping==="week"&&date!=="Unknown"?saleWeekStart(date):date;
+        if(!buckets.has(key)) buckets.set(key,{sales:0,qty:0,price:0,count:0});
+        const b=buckets.get(key);
+        b.sales+=Number(r.net_sales_collected)||0;
+        b.qty+=Number(r.quantity_sold)||0;
+        b.price+=Number(r.gross_unit_price)||0;
+        b.count++;
+      }
+      const labels=[...buckets.keys()].sort();
+      const groups=labels.map(k=>buckets.get(k));
+      let sales=groups.map(x=>x.sales), qty=groups.map(x=>x.qty);
+      let values, title, isCurrency=true, type="bar";
+      if(mode==="quantity"){values=qty;title="Units sold";isCurrency=false;}
+      else if(mode==="price"){values=groups.map(x=>x.price/x.count);title="Average gross unit price";}
+      else if(mode==="cumulative"){let sum=0;values=sales.map(v=>sum+=v);title="Cumulative net sales";type="line";}
+      else {values=sales;title="Net sales";type="line";}
+      const palette=["#c7f26b","#6db8ff","#ffab7b","#b29bff"];
+      const datasets=[{label:title,data:values,borderColor:palette[(question-1)%4],backgroundColor:mode==="trend"?"rgba(109,184,255,.10)":palette[(question-1)%4],borderWidth:3,tension:.32,fill:mode==="trend",borderRadius:6,maxBarThickness:52,pointRadius:labels.length>50?0:3}];
+      if(mode==="mix") {
+        type="bar";
+        datasets[0].type="bar";datasets[0].label="Net sales";datasets[0].yAxisID="y";
+        datasets.push({type:"line",label:"Units sold",data:qty,borderColor:"#ffab7b",backgroundColor:"#ffab7b",borderWidth:3,tension:.25,yAxisID:"y1"});
+      }
+      const opts=chartOptions(title,isCurrency);
+      opts.plugins.legend={display:mode==="mix",labels:{color:"#93a4bb"}};
+      opts.plugins.tooltip={mode:"index",intersect:false};
+      if(mode==="mix"){
+        opts.scales.y1={position:"right",beginAtZero:true,grid:{drawOnChartArea:false},ticks:{color:"#ffab7b"}};
+      }
+      const primary=question===2?"chart2a":"chart"+question;
+      makeChart("studio"+question,primary,{type,data:{labels,datasets},options:opts});
+      if(question===2){
+        const extra=document.getElementById("chart2b");
+        if(extra){const parent=extra.closest(".card");if(parent)parent.classList.add("hidden");}
+      }
+      const total=rows.reduce((s,r)=>s+(Number(r.net_sales_collected)||0),0);
+      const units=rows.reduce((s,r)=>s+(Number(r.quantity_sold)||0),0);
+      const avg=rows.length?total/rows.length:0;
+      const summary=document.getElementById("analyticsSummary"+question);
+      if(summary){
+        summary.replaceChildren();
+        for(const [label,value] of [["Filtered sales",money(total)],["Units",number(units)],["Average sale",money(avg)],["Records",number(rows.length)]]){
+          const item=document.createElement("span");
+          const b=document.createElement("b");b.textContent=value;
+          item.append(label+": ",b);summary.append(item);
+        }
+      }
+      show("charts"+question);
+    }
+    // ==========================================
+    // DATA TABLES
+    // ==========================================
+
+    function renderTable(question, rows) {
+      resultCache[question]=[...rows].sort((a,b)=>{
+        const da=a.dim_date?.full_date||'', db=b.dim_date?.full_date||'';
+        return db.localeCompare(da)||Number(b.sales_fact_id)-Number(a.sales_fact_id);
+      });
+      tableState[question].page=1;
+      drawTablePage(question);
+      show('tableSection'+question);
+    }
+
+    // ==========================================
+    // LOAD QUESTION
+    // ==========================================
+
+    async function loadQuestion(question) {
+      if (loading[question]) return;
+
+      loading[question] = true;
+
+      setStatus(
+        question,
+        "Loading Question " + question + " sales..."
+      );
+
+      hide("summary" + question);
+      hide("charts" + question);
+      hide("tableSection" + question);
+      hide("empty" + question);
+      hide("insights" + question);
+
+      try {
+        const rows = overviewResults[question] ?? await fetchAll(question);
+
+        updateSummary(question, rows);
+        updateInsights(question, rows);
+
+        originalRows[question]=rows;
+        if (rows.length === 0) {
+          show("empty" + question);
+        } else {
+          // Make chart containers visible before
+          // Chart.js measures the canvas sizes.
+          show("charts" + question);
+          renderCharts(question, rows);
+          renderTable(question, rows);
+        }
+
+        loaded[question] = true;
+
+        setStatus(
+          question,
+          "Loaded " + number(rows.length) + " matching records from Supabase · " +
+          new Date().toLocaleTimeString('en-PH'),
+          "success"
+        );
+        return true;
+      } catch (error) {
+        console.error(
+          "Question " + question + " error:",
+          error
+        );
+
+        setStatus(
+          question,
+          "Unable to load data: " + error.message,
+          "error"
+        );
+        return false;
+      } finally {
+        loading[question] = false;
+      }
+    }
+
+    // ==========================================
+    // TAB NAVIGATION
+    // ==========================================
+
+    function openTab(question) {
+      const isOverview = question === 'overview';
+      document.getElementById('overview').classList.toggle('hidden', !isOverview);
+      document.getElementById('tabOverview').classList.toggle('active', isOverview);
+      document.getElementById('tabOverview').setAttribute('aria-selected',String(isOverview));
+      [1, 2, 3, 4].forEach(n => {
+        document.getElementById("question" + n)
+          .classList.toggle("hidden", n !== question);
+
+        document.getElementById("tab" + n)
+          .classList.toggle("active", n === question);
+        document.getElementById('tab'+n).setAttribute('aria-selected',String(n===question));
+      });
+
+      if(isOverview){
+        if(!overviewInitialized) loadOverview();
+        else requestAnimationFrame(()=>renderOverview());
+      } else if (!loaded[question] && !loading[question]) {
+        loadQuestion(question);
+      }
+
+      requestAnimationFrame(() => {
+        Object.values(charts).forEach(chart => chart.resize());
+      });
+    }
+
+    [1, 2, 3, 4].forEach(question => {
+      document.getElementById("tab" + question)
+        .addEventListener(
+          "click",
+          () => openTab(question)
+        );
+    });
+
+    // ==========================================
+    // POWER FEATURES: INSIGHTS, SEARCH, PAGING, CSV
+    // ==========================================
+    const resultCache = {1:[],2:[],3:[],4:[]};
+    const tableState = Object.fromEntries([1,2,3,4].map(q=>[q,{search:'',page:1,pageSize:25}]));
+
+    function tableValues(question,row){
+      const base=[row.sales_fact_id,row.dim_date?.full_date];
+      if(question===1) return [...base,row.dim_product?.sku_code,row.dim_product?.product_name,row.quantity_sold,money(row.gross_unit_price),money(row.net_sales_collected)];
+      if(question===2) return [...base,row.dim_customer?.full_name,row.dim_product?.sku_code,row.dim_product?.product_name,row.quantity_sold,money(row.gross_unit_price),money(row.net_sales_collected)];
+      if(question===3) return [...base,row.dim_employee?.employee_id,row.dim_store?.store_code,row.quantity_sold,money(row.gross_unit_price),money(row.net_sales_collected)];
+      return [...base,row.dim_product?.sku_code,row.dim_promotion?.promo_code,row.quantity_sold,money(row.gross_unit_price),money(row.net_sales_collected)];
+    }
+    function filteredRows(question){
+      const query=tableState[question].search.trim().toLowerCase();
+      return resultCache[question].filter(row=>!query||tableValues(question,row).some(v=>String(v??'').toLowerCase().includes(query)));
+    }
+    function drawTablePage(question){
+      const state=tableState[question], rows=filteredRows(question);
+      const pages=Math.max(1,Math.ceil(rows.length/state.pageSize));
+      state.page=Math.min(state.page,pages);
+      const start=(state.page-1)*state.pageSize;
+      const fragment=document.createDocumentFragment();
+      rows.slice(start,start+state.pageSize).forEach(row=>{
+        const tr=document.createElement('tr');
+        tableValues(question,row).forEach(value=>{
+          const td=document.createElement('td');td.textContent=value??'N/A';tr.appendChild(td);
+        });fragment.appendChild(tr);
+      });
+      const tbody=document.getElementById('tableBody'+question);
+      tbody.replaceChildren(fragment);
+      document.getElementById('tableCount'+question).textContent=`${number(rows.length)} matching records • ${number(resultCache[question].length)} loaded in total`;
+      document.getElementById('pageInfo'+question).textContent=`Page ${state.page} of ${pages} • ${rows.length ? `${start+1}–${Math.min(start+state.pageSize,rows.length)}` : '0'} shown`;
+      document.getElementById('prev'+question).disabled=state.page===1;
+      document.getElementById('next'+question).disabled=state.page===pages;
+    }
+    function csvEscape(value){
+      const str=String(value??'');
+      const safe=/^[=+@\-\t\r]/.test(str)?"'"+str:str;
+      return '"'+safe.replace(/"/g,'""')+'"';
+    }
+    function exportCSV(question){
+      const headers=[...document.querySelectorAll(`#tableSection${question} thead th`)].map(th=>th.textContent.trim());
+      const rows=filteredRows(question).map(row=>tableValues(question,row));
+      const csv='\ufeff'+[headers,...rows].map(row=>row.map(csvEscape).join(',')).join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+      const a=document.createElement('a');a.href=url;a.download=`signal-question-${question}-sales.csv`;document.body.appendChild(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+    function addTableControls(question){
+      const section=document.getElementById('tableSection'+question), wrapper=section.querySelector('.table-wrapper');
+      const bar=document.createElement('div');bar.className='toolbar';
+      bar.innerHTML=`<input id="search${question}" type="search" aria-label="Search sales records" placeholder="⌕  Search dates, IDs, products, values..."><select id="size${question}" aria-label="Rows per page"><option value="25">25 rows</option><option value="50">50 rows</option><option value="100">100 rows</option></select><button class="action-btn primary" id="export${question}" type="button">↓ Export CSV</button>`;
+      wrapper.before(bar);
+      const pagination=document.createElement('div');pagination.className='pagination';
+      pagination.innerHTML=`<span id="pageInfo${question}"></span><div class="pager-buttons"><button class="action-btn" id="prev${question}" type="button">← Previous</button><button class="action-btn" id="next${question}" type="button">Next →</button></div>`;
+      wrapper.after(pagination);
+      document.getElementById('search'+question).addEventListener('input',e=>{tableState[question].search=e.target.value;tableState[question].page=1;drawTablePage(question)});
+      document.getElementById('size'+question).addEventListener('change',e=>{tableState[question].pageSize=Number(e.target.value);tableState[question].page=1;drawTablePage(question)});
+      document.getElementById('export'+question).addEventListener('click',()=>exportCSV(question));
+      document.getElementById('prev'+question).addEventListener('click',()=>{tableState[question].page--;drawTablePage(question)});
+      document.getElementById('next'+question).addEventListener('click',()=>{tableState[question].page++;drawTablePage(question)});
+    }
+    function updateInsights(question, rows){
+      const el=document.getElementById('insights'+question);
+      const qty=totalOf(rows,'quantity_sold'), net=totalOf(rows,'net_sales_collected');
+      const distinctDates=new Set(rows.map(r=>r.dim_date?.full_date).filter(Boolean));
+      const daily=dailySales(rows);
+      const peak=daily.values.length?Math.max(...daily.values):0;
+      const peakIndex=daily.values.indexOf(peak);
+      const facts=[
+        ['Average sale value',money(rows.length?net/rows.length:0),'Net revenue per matching sale'],
+        ['Active sales days',number(distinctDates.size),'Unique transaction dates'],
+        ['Highest sales day',peakIndex>=0?daily.labels[peakIndex]:'—',peakIndex>=0?money(peak)+' net revenue':'No dated sales']
+      ];
+      el.replaceChildren();
+      facts.forEach(([label,value,detail])=>{
+        const card=document.createElement('div');card.className='insight';
+        for(const [cls,content] of [['insight-label',label],['insight-value',value],['insight-detail',detail]]){
+          const item=document.createElement('div');item.className=cls;item.textContent=content;card.appendChild(item);
+        }el.appendChild(card);
+      });
+      el.classList.toggle('hidden',rows.length===0);
+    }
+    [1,2,3,4].forEach(q=>{
+      const insight=document.createElement('div');insight.id='insights'+q;insight.className='insights hidden';
+      document.getElementById('summary'+q).after(insight);
+      addTableControls(q);
+    });
+    document.getElementById('themeToggle').addEventListener('click',()=>{
+      const isLight=document.body.classList.toggle('light');
+      document.getElementById('themeToggle').textContent=isLight?'☾ Dark mode':'☀ Light mode';
+      Chart.defaults.color=isLight?'#526783':'#9aaec9';
+      Chart.defaults.borderColor=isLight?'#d9e4f2':'#2a3954';
+      Object.values(charts).forEach(chart=>chart.update());
+    });
+    // Refresh is handled by refreshDashboardData() below: all view caches are invalidated.
+    Chart.defaults.color='#9aaec9';
+    Chart.defaults.borderColor='#2a3954';
+
+    // Print only the active report; all queries and calculations remain unchanged.
+    document.getElementById('printReport').addEventListener('click',()=>window.print());
+    document.querySelector('.tabs').addEventListener('keydown',event=>{
+      if(!['ArrowLeft','ArrowRight'].includes(event.key))return;
+      const ids=['tabOverview','tab1','tab2','tab3','tab4'];
+      const current=ids.indexOf(document.querySelector('.tab.active')?.id);
+      const next=(current+(event.key==='ArrowRight'?1:-1)+ids.length)%ids.length;
+      document.getElementById(ids[next]).focus();
+      openTab(next===0?'overview':next);
+      event.preventDefault();
+    });
+    document.getElementById('tabOverview').addEventListener('click',()=>openTab('overview'));
+    // ==========================================
+    // INITIALIZE
+    // ==========================================
+
+    // FULL DATASET DASHBOARD — access follows Supabase RLS policies.
+    const overviewResults={1:null,2:null,3:null,4:null};
+    let overviewInitialized=false;
+    let overviewBusy=false;
+    let allSalesRows=[];
+    let visibleSalesRows=[];
+    let overviewPage=1;
+    let overviewPartial=false;
+    const overviewColors=['#e5ff7a','#76baff','#ff9e77','#b5a1ff','#65dcb2','#ffcf82','#ef8bb3','#8ee0ed'];
+
+    function valueText(value){return value===null||value===undefined||value===''?'—':String(value)}
+    function overviewStatus(text,type=''){
+      const el=document.getElementById('overviewStatus');el.textContent=text;el.className='status '+type;
+    }
+    function idCompare(a,b){
+      const aa=Number(a.sales_fact_id),bb=Number(b.sales_fact_id);
+      return Number.isFinite(aa)&&Number.isFinite(bb)?aa-bb:String(a.sales_fact_id).localeCompare(String(b.sales_fact_id),undefined,{numeric:true});
+    }
+    function rowField(row,field){const v=row[field];return Array.isArray(v)?v[0]||{}:v||{}}
+    function dateOf(row){return rowField(row,'dim_date').full_date||''}
+    function saleWeekStart(isoDate){
+      const d=new Date(isoDate+'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));
+      return d.toISOString().slice(0,10);
+    }
+    function skuOf(row){return rowField(row,'dim_product').sku_code||''}
+    function productOf(row){return rowField(row,'dim_product').product_name||''}
+    function customerOf(row){return rowField(row,'dim_customer').full_name||''}
+    function employeeOf(row){return rowField(row,'dim_employee').employee_id||''}
+    function storeOf(row){return rowField(row,'dim_store').store_code||''}
+    function promotionOf(row){return rowField(row,'dim_promotion').promo_code||''}
+    function metricSum(rows,key){return rows.reduce((total,row)=>total+(Number(row[key])||0),0)}
+    function roundPercent(n){return Math.round(n*100)/100}
+    function overviewGraphOpts(currency=true){
+      return {
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(currency?money(ctx.parsed.y):number(ctx.parsed.y))}}},
+        scales:{x:{ticks:{color:'#9aacbf',maxRotation:0,autoSkip:true,maxTicksLimit:12},grid:{display:false}},y:{beginAtZero:true,ticks:{color:'#9aacbf',callback:v=>currency?'₱'+new Intl.NumberFormat('en-PH',{notation:'compact'}).format(v):number(v)},grid:{color:'#ffffff12'}}}
+      };
+    }
+    function dateFilter(row){
+      const date=dateOf(row),from=document.getElementById('overviewFrom').value,to=document.getElementById('overviewTo').value;
+      return (!from||(date&&date>=from))&&(!to||(date&&date<=to));
+    }
+    function refreshProductChoices(){
+      const select=document.getElementById('overviewProduct');const previous=select.value;
+      const choices=[...new Set(allSalesRows.map(skuOf).filter(Boolean))].sort();
+      select.replaceChildren(new Option('All products',''));
+      for(const value of choices)select.add(new Option(value,value));
+      select.value=choices.includes(previous)?previous:'';
+    }
+    function getVisibleSalesRows(){
+      const phrase=document.getElementById('overviewSearch').value.trim().toLowerCase();
+      const product=document.getElementById('overviewProduct').value;
+      const rows=allSalesRows.filter(row=>{
+        if(!dateFilter(row)||(product&&skuOf(row)!==product))return false;
+        return !phrase||[
+          row.sales_fact_id,dateOf(row),skuOf(row),productOf(row),customerOf(row),employeeOf(row),storeOf(row),promotionOf(row),
+          row.quantity_sold,row.gross_unit_price,row.net_sales_collected
+        ].some(value=>String(value??'').toLowerCase().includes(phrase));
+      });
+      const order=document.getElementById('overviewSort').value;
+      return rows.sort((a,b)=>{
+        if(order==='date-desc')return dateOf(b).localeCompare(dateOf(a))||idCompare(b,a);
+        if(order==='date-asc')return dateOf(a).localeCompare(dateOf(b))||idCompare(a,b);
+        if(order==='revenue-desc')return (Number(b.net_sales_collected)||0)-(Number(a.net_sales_collected)||0)||idCompare(b,a);
+        if(order==='quantity-desc')return (Number(b.quantity_sold)||0)-(Number(a.quantity_sold)||0)||idCompare(b,a);
+        return idCompare(b,a);
+      });
+    }
+    function renderAllSalesTable(){
+      const size=Number(document.getElementById('overviewPageSize').value)||50;
+      const pages=Math.max(1,Math.ceil(visibleSalesRows.length/size));
+      overviewPage=Math.max(1,Math.min(overviewPage,pages));
+      const start=(overviewPage-1)*size;
+      const current=visibleSalesRows.slice(start,start+size);
+      const body=document.getElementById('overviewRows');body.replaceChildren();
+      const fragment=document.createDocumentFragment();
+      const columns=row=>[
+        row.sales_fact_id,dateOf(row),row.date_key,skuOf(row),productOf(row),customerOf(row),employeeOf(row),storeOf(row),promotionOf(row),
+        row.quantity_sold,money(row.gross_unit_price),money(row.net_sales_collected)
+      ];
+      for(const row of current){
+        const tr=document.createElement('tr');
+        for(const value of columns(row)){
+          const td=document.createElement('td');td.textContent=valueText(value);tr.append(td);
+        }
+        fragment.append(tr);
+      }
+      if(!current.length){
+        const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=12;td.className='empty';td.textContent='No sales match these filters.';tr.append(td);fragment.append(tr);
+      }
+      body.append(fragment);
+      const count=visibleSalesRows.length;
+      document.getElementById('overviewRecordCount').textContent=number(count)+' matching records from '+number(allSalesRows.length)+' loaded';
+      document.getElementById('overviewPageInfo').textContent=count?`Showing ${number(start+1)}–${number(Math.min(start+size,count))} of ${number(count)} records`:'0 matching records';
+      document.getElementById('overviewPageLabel').textContent=`Page ${overviewPage} of ${pages}`;
+      document.getElementById('overviewFirst').disabled=overviewPage<=1;
+      document.getElementById('overviewPrev').disabled=overviewPage<=1;
+      document.getElementById('overviewNext').disabled=overviewPage>=pages;
+      document.getElementById('overviewLast').disabled=overviewPage>=pages;
+    }
+    function renderAllSalesVisuals(){
+      const rows=visibleSalesRows;
+      const sales=metricSum(rows,'net_sales_collected'),units=metricSum(rows,'quantity_sold');
+      document.getElementById('ovCount').textContent=number(rows.length);
+      document.getElementById('ovCountDetail').textContent=rows.length===allSalesRows.length?'All loaded transactions':'Filtered from '+number(allSalesRows.length)+' loaded';
+      document.getElementById('ovRevenue').textContent=money(sales);
+      document.getElementById('ovUnits').textContent=number(units);
+      document.getElementById('ovAov').textContent=money(rows.length?sales/rows.length:0);
+      const uniqueDates=[...new Set(rows.map(dateOf).filter(Boolean))].sort();
+      document.getElementById('ovUniqueDates').textContent=number(uniqueDates.length);
+      document.getElementById('ovDateSpan').textContent=uniqueDates.length
+        ? uniqueDates[0]+' to '+uniqueDates[uniqueDates.length-1]
+        : 'No readable sale dates';
+      const grouped=new Map();const group=document.getElementById('overviewGroup').value;
+      const products=new Map();
+      for(const row of rows){
+        const day=dateOf(row);
+        if(day){const key=group==='day'?day:group==='week'?saleWeekStart(day):day.slice(0,7);if(!grouped.has(key))grouped.set(key,{sales:0,units:0});
+          const item=grouped.get(key);item.sales+=Number(row.net_sales_collected)||0;item.units+=Number(row.quantity_sold)||0;}
+        const key=skuOf(row)||'Unspecified';products.set(key,(products.get(key)||0)+(Number(row.net_sales_collected)||0));
+      }
+      const labels=[...grouped.keys()].sort(),values=labels.map(key=>grouped.get(key).sales);
+      makeChart('overviewTrend','overviewTrend',{
+        type:'line',data:{labels,datasets:[{label:'Net sales',data:values,borderColor:'#e5ff7a',backgroundColor:'rgba(229,255,122,.09)',fill:true,borderWidth:3,tension:.3,pointRadius:labels.length>55?0:3}]},options:overviewGraphOpts()
+      });
+      const ranked=[...products.entries()].sort((a,b)=>b[1]-a[1]);
+      const top=ranked.slice(0,8);
+      const barOpts=overviewGraphOpts();barOpts.indexAxis='y';barOpts.plugins.tooltip.callbacks.label=ctx=>'Net sales: '+money(ctx.parsed.x);barOpts.scales.y={ticks:{color:'#aebdd0'},grid:{display:false}};
+      barOpts.scales.x={beginAtZero:true,ticks:{color:'#9aacbf',callback:v=>'₱'+new Intl.NumberFormat('en-PH',{notation:'compact'}).format(v)},grid:{color:'#ffffff12'}};
+      makeChart('overviewBars','overviewBars',{
+        type:'bar',data:{labels:top.map(x=>x[0]),datasets:[{label:'Net sales',data:top.map(x=>x[1]),backgroundColor:top.map((_,i)=>overviewColors[i%overviewColors.length]),borderRadius:7,maxBarThickness:25}]},options:barOpts
+      });
+      const donut=ranked.slice(0,6);
+      const remaining=ranked.slice(6).reduce((sum,p)=>sum+p[1],0);
+      if(remaining>0)donut.push(['Other products',remaining]);
+      makeChart('overviewMixed','overviewMixed',{
+        type:'doughnut',data:{labels:donut.map(x=>x[0]),datasets:[{label:'Net sales',data:donut.map(x=>x[1]),backgroundColor:donut.map((_,i)=>overviewColors[i%overviewColors.length]),borderColor:'#0a1220',borderWidth:3,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'right',labels:{color:'#b9c9dc',boxWidth:12,padding:14}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+money(ctx.parsed)}}}}
+      });
+      const peak=labels.reduce((best,date,i)=>values[i]>(best?.value??-Infinity)?{date,value:values[i]}:best,null);
+      const cards=[
+        ['Top product',ranked[0]?.[0]||'—',ranked.length?money(ranked[0][1])+' in net sales':'No sales'],
+        ['Best '+(group==='day'?'day':'month'),peak?.date||'—',peak?money(peak.value)+' in net sales':'No dated transactions'],
+        ['Distinct products',number(products.size),number(rows.length)+' filtered records']
+      ];
+      const insight=document.getElementById('overviewInsights');insight.replaceChildren();
+      for(const [heading,value,detail] of cards){
+        const card=document.createElement('div');card.className='insight';
+        for(const [cls,val] of [['insight-label',heading],['insight-value',value],['insight-detail',detail]]){
+          const element=document.createElement('div');element.className=cls;element.textContent=val;card.append(element);
+        }
+        insight.append(card);
+      }
+    }
+    function renderOverview(resetPage=false){
+      if(!overviewInitialized||document.getElementById('overview').classList.contains('hidden'))return;
+      if(resetPage)overviewPage=1;
+      visibleSalesRows=getVisibleSalesRows();
+      document.getElementById('overviewContents').classList.remove('hidden');
+      renderAllSalesVisuals();renderAllSalesTable();
+    }
+    async function fetchFullFactSales(){
+      // Page in batches <= 1,000; Supabase's default maximum return is often 1,000 rows.
+      const columns='sales_fact_id,date_key,quantity_sold,gross_unit_price,net_sales_collected';
+      const related=`,dim_date(full_date),dim_product(sku_code,product_name),dim_customer(full_name),dim_employee(employee_id),dim_store(store_code),dim_promotion(promo_code)`;
+      const batchSize=1000;
+      async function scan(selectColumns){
+        const result=[];let start=0;
+        for(;;){
+          const {data,error}=await supabaseClient.from('fact_sales').select(selectColumns)
+            .order('sales_fact_id',{ascending:true}).range(start,start+batchSize-1);
+          if(error)throw error;
+          const rows=data||[];result.push(...rows);
+          overviewStatus('Loading complete sales records… '+number(result.length)+' retrieved');
+          if(rows.length<batchSize)break;
+          start+=batchSize;
+          if(start>=100000)throw new Error('The record limit of 100,000 was reached. Ask for server-side pagination for larger datasets.');
+        }
+        return result;
+      }
+      try{
+        return {rows:await scan(columns+related),limited:false};
+      }catch(error){
+        console.warn('Related fields could not be read; retrying basic sales fields.',error);
+        try {return {rows:await scan(columns),limited:true,reason:error.message};}
+        catch(baseError){throw new Error('Unable to load fact_sales: '+baseError.message)}
+      }
+    }
+    async function loadOverview(force=false){
+      if(overviewBusy)return;
+      if(overviewInitialized&&!force){renderOverview();return;}
+      overviewBusy=true;
+      overviewStatus('Loading all accessible fact_sales records…');
+      document.getElementById('overviewAlert').classList.add('hidden');
+      document.getElementById('overviewExport').disabled=true;
+      try{
+        const result=await fetchFullFactSales();
+        allSalesRows=result.rows;overviewPartial=result.limited;
+        overviewInitialized=true;
+        refreshProductChoices();
+        const alert=document.getElementById('overviewAlert');
+        const distinctKeys=new Set(allSalesRows.map(row=>row.date_key).filter(key=>key!==null&&key!==undefined));
+        const oneDate=allSalesRows.length>1 && distinctKeys.size===1;
+        const notices=[];
+        if(oneDate) notices.push('DATE QUALITY WARNING: all '+number(allSalesRows.length)+' sales have date_key '+[...distinctKeys][0]+'. This comes from the SQL seed, not the chart. Run UNIQLO_Repair_Sales_Dates_2024_to_2026.sql in the Supabase SQL Editor, then reload records. The repair generates labeled synthetic dates, not historical facts.');
+        if(result.limited) notices.push('Some dimension columns could not be read: '+result.reason+'. Date labels may be unavailable until those relationships are accessible.');
+        alert.textContent=notices.join('  ');
+        alert.classList.toggle('hidden',notices.length===0);
+        overviewStatus('Loaded '+number(allSalesRows.length)+' sales records from Supabase · '+new Date().toLocaleTimeString('en-PH')+(oneDate?' · Only one distinct date key detected':'')+(result.limited?' (basic fields only)':''),oneDate?'warning':result.limited?'':'success');
+        document.getElementById('overviewExport').disabled=false;
+        renderOverview(true);
+        return true;
+      }catch(error){
+        console.error('Full sales dashboard:',error);
+        overviewStatus(error.message,'error');
+        const alert=document.getElementById('overviewAlert');
+        alert.textContent='Sales data was not retrieved. Check Supabase table access, read policies, and network connectivity; no example records are substituted.';
+        alert.classList.remove('hidden');
+        return false;
+      }finally{overviewBusy=false;}
+    }
+    function exportAllSales(){
+      if(!overviewInitialized)return;
+      const heading=['Sale ID','Date','Date Key','SKU','Product','Customer','Employee','Store','Promotion','Quantity','Gross Unit Price PHP','Net Sales PHP'];
+      const data=visibleSalesRows.map(row=>[row.sales_fact_id,dateOf(row),row.date_key,skuOf(row),productOf(row),customerOf(row),employeeOf(row),storeOf(row),promotionOf(row),row.quantity_sold,row.gross_unit_price,row.net_sales_collected]);
+      const safe=value=>{const raw=String(value??'');return csvEscape(/^[\s]*[=+@\-]/.test(raw)?"'"+raw:raw)};
+      const csv='\ufeff'+[heading,...data].map(values=>values.map(safe).join(',')).join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+      const a=document.createElement('a');a.href=url;a.download='uniqlo-all-sales-records.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    }
+    // VERSION: UNIQLO REFRESH ALL v3 — refresh every report, not only the active tab.
+    let refreshInProgress=false;
+    let completedRefreshes=0;
+    function refreshMessage(message, kind=''){
+      const notice=document.getElementById('refreshNotice');
+      notice.textContent=message;
+      notice.className='refresh-notice'+(kind?' '+kind:'');
+      // The banner is visible below the tabs; screen readers also hear status updates.
+    }
+    function salesFingerprint(rows){
+      if(!rows?.length)return '0/0/0';
+      let count=0,amount=0,dates=0;
+      for(const row of rows){
+        ++count;
+        amount+=Math.round((Number(row.net_sales_collected)||0)*100);
+        dates+=(Number(row.date_key)||0);
+      }
+      return count+'/'+amount+'/'+dates;
+    }
+    async function waitForPendingReads(){
+      const started=Date.now();
+      while(overviewBusy || [1,2,3,4].some(n=>loading[n])){
+        if(Date.now()-started>30000)throw new Error('A previous data request has not finished. Please check your internet connection and try again.');
+        await new Promise(resolve=>setTimeout(resolve,150));
+      }
+    }
+    async function refreshDashboardData(){
+      if(refreshInProgress)return;
+      refreshInProgress=true;
+      const top=document.getElementById('refreshData');
+      const lower=document.getElementById('overviewRefresh');
+      const oldLabel=top.textContent;
+      top.disabled=true;lower.disabled=true;
+      top.textContent='⟳ Refreshing…';
+      lower.textContent='⟳ Syncing…';
+      refreshMessage('Connecting to Supabase and refreshing all sales data…');
+      const activeTab=document.querySelector('.tab.active')?.id||'tabOverview';
+      const activeQuestion=activeTab==='tabOverview'?null:Number(activeTab.slice(3));
+      const before=salesFingerprint(allSalesRows);
+      const previousQuestion4=(originalRows[4]||overviewResults[4]||[]).length;
+      const failures=[];
+      const counts={};
+      try{
+        await waitForPendingReads();
+        // Fetch full data from the server. Supabase requests use cache:no-store.
+        // Do not clear the existing dashboard if this request fails.
+        refreshMessage('Loading complete sales records from Supabase…');
+        const overviewOK=await loadOverview(true);
+        if(overviewOK!==true)throw new Error('The full sales query failed. Check the All Sales Dashboard status for details.');
+        counts.overview=allSalesRows.length;
+        // Load all four filtered reports. A report failure is visible instead of silent.
+        for(const q of [1,2,3,4]){
+          refreshMessage('Loaded '+number(counts.overview)+' sales records. Refreshing report '+q+' of 4…');
+          try{
+            const rows=await fetchAll(q);
+            overviewResults[q]=rows;
+            counts[q]=rows.length;
+            loaded[q]=false;
+          }catch(error){
+            overviewResults[q]=null;
+            loaded[q]=false;
+            failures.push('Question '+q+': '+error.message);
+            console.error('Refresh report '+q+':',error);
+          }
+        }
+        // The report shown on screen must update immediately; other reports use fresh cached reads on opening.
+        if(activeQuestion && Object.hasOwn(counts,activeQuestion)){
+          const ok=await loadQuestion(activeQuestion);
+          if(!ok)failures.push('Could not draw Question '+activeQuestion+'.');
+        }
+        if(!activeQuestion){
+          // The overview charts and records table were already repainted by loadOverview(true).
+          renderOverview(true);
+        }
+        completedRefreshes++;
+        const changed=salesFingerprint(allSalesRows)!==before;
+        const summary='Refresh #'+completedRefreshes+' completed at '+new Date().toLocaleTimeString('en-PH')+
+          ' · '+number(counts.overview)+' total records'+
+          ' · Question 1: '+(counts[1]??'error')+
+          ' · Question 2: '+(counts[2]??'error')+
+          ' · Question 3: '+(counts[3]??'error')+
+          ' · Question 4: '+(counts[4]??'error')+
+          ' · '+(changed?'Full sales data changed since last load.':'Full sales totals/dates unchanged since last load.');
+        const filters=['overviewSearch','overviewProduct','overviewFrom','overviewTo'].some(id=>Boolean(document.getElementById(id)?.value));
+        refreshMessage(summary + (counts[4]!==undefined&&counts[4]!==previousQuestion4?' Question 4 now has '+counts[4]+' matching records.':'')+
+          (filters?' Current filters are still active. Use Clear filters to display all loaded rows.':'')+
+          (failures.length?' WARNING: '+failures.join(' | '):''),failures.length?'warning':'');
+        if(failures.length)console.warn('Some report queries failed:',failures);
+      }catch(error){
+        console.error('Refresh failed:',error);
+        refreshMessage('Refresh failed: '+error.message+' — The dashboard cannot change the records stored in Supabase.','error');
+      }finally{
+        refreshInProgress=false;
+        top.disabled=false;lower.disabled=false;
+        top.textContent=oldLabel;
+        lower.textContent='↻ Reload records';
+      }
+    }
+    document.getElementById('refreshData').addEventListener('click',refreshDashboardData);
+    document.getElementById('overviewRefresh').addEventListener('click',refreshDashboardData);
+    document.getElementById('overviewExport').addEventListener('click',exportAllSales);
+    ['overviewSearch','overviewProduct','overviewFrom','overviewTo','overviewSort'].forEach(id=>{
+      document.getElementById(id).addEventListener(id==='overviewSearch'?'input':'change',()=>renderOverview(true));
+    });
+    document.getElementById('overviewGroup').addEventListener('change',()=>renderOverview());
+    document.getElementById('overviewPageSize').addEventListener('change',()=>{overviewPage=1;renderAllSalesTable();});
+    for(const [id,step] of [['overviewFirst','first'],['overviewPrev','prev'],['overviewNext','next'],['overviewLast','last']]){
+      document.getElementById(id).addEventListener('click',()=>{
+        const size=Number(document.getElementById('overviewPageSize').value)||50;
+        const pages=Math.max(1,Math.ceil(visibleSalesRows.length/size));
+        overviewPage=step==='first'?1:step==='last'?pages:Math.max(1,Math.min(pages,overviewPage+(step==='next'?1:-1)));
+        renderAllSalesTable();
+      });
+    }
+    document.getElementById('overviewClear').addEventListener('click',()=>{
+      for(const id of ['overviewSearch','overviewProduct','overviewFrom','overviewTo'])document.getElementById(id).value='';
+      document.getElementById('overviewSort').value='id-desc';document.getElementById('overviewGroup').value='month';
+      renderOverview(true);
+    });
+
+    openTab('overview');
+
+    [1,2,3,4].forEach(q=>{
+      const update=()=>{
+        analysisFilters[q]={from:document.getElementById("from"+q).value,to:document.getElementById("to"+q).value};
+        if(originalRows[q]) renderCharts(q);
+      };
+      ["view","group","from","to"].forEach(prefix=>document.getElementById(prefix+q)?.addEventListener("change",update));
+      document.getElementById("reset"+q)?.addEventListener("click",()=>{
+        ["from","to"].forEach(k=>document.getElementById(k+q).value="");
+        document.getElementById("view"+q).value="trend";
+        document.getElementById("group"+q).value="day";
+        update();
+      });
+      document.getElementById("png"+q)?.addEventListener("click",()=>{
+        const canvas=document.getElementById(q===2?"chart2a":"chart"+q);
+        if(!canvas)return;
+        const a=document.createElement("a");
+        a.href=canvas.toDataURL("image/png");a.download="uniqlo-sales-question-"+q+"-graph.png";a.click();
+      });
+    });
+</script>
+</body>
+</html>
